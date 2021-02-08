@@ -31,25 +31,6 @@ namespace FunctionApp1
             dynamic data = JsonConvert.DeserializeObject(requestBody);
             name = name ?? data?.name;
 
-
-            /*using (PowerShell ps = PowerShell.Create())
-            {
-                // specify the script code to run.
-                ps.AddScript("Set-Item WSMan:localhost\\client\\trustedhosts -value *");
-
-                // specify the parameters to pass into the script.
-                //ps.AddParameters();
-
-                // execute the script and await the result.
-                var pipelineObjects = await ps.InvokeAsync().ConfigureAwait(false);
-
-                // print the resulting pipeline objects to the console.
-                foreach (var item in pipelineObjects)
-                {
-                    Console.WriteLine(item.BaseObject.ToString());
-                }
-            }*/
-
             WSManConnectionInfo connectionInfo = new WSManConnectionInfo();
             connectionInfo.Credential = new PSCredential(Environment.GetEnvironmentVariable("User"), ConvertToSecureString(Environment.GetEnvironmentVariable("Password")));
             connectionInfo.ComputerName = Environment.GetEnvironmentVariable("ScriptHost");
@@ -58,6 +39,10 @@ namespace FunctionApp1
             string outputString = "";
             using (PowerShell ps = PowerShell.Create())
             {
+                // Add all hosts to trusted hosts
+                ps.AddScript("Set-Item WSMan:localhost\\client\\trustedhosts -value *");
+                ps.Invoke();
+
                 ps.Runspace = runspace;
                 
                 string scriptPath = Environment.GetEnvironmentVariable("ScriptPath");
